@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<!--
+    Plain-Academic Template for Amit — Statistics & Research
+    Inspired by Plain-Academic by Vasilios Mavroudis (as used by Prof. Sourav Chatterjee, Stanford)
+-->
+<html lang="en">
+<head>
+  <title>Amit — Academic Homepage</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Academic website of Amit, B.Sc. (Hons.) Statistics student at Hindu College, University of Delhi. Research interests in statistical inference and estimation theory.">
+  
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- MathJax for rendering LaTeX TeX equations ($...$ inline and $$...$$ display) -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" id="nav-brand" class="navbar-brand">Amit</a>
+      <ul class="navbar-nav">
+        <li><a href="#about" class="active">Home</a></li>
+        <li data-nav="research"><a href="#research">Research</a></li>
+        <li data-nav="projects"><a href="#projects">Projects</a></li>
+        <li data-nav="experience"><a href="#experience">Experience</a></li>
+        <li data-nav="education"><a href="#education">Education</a></li>
+        <li data-nav="awards"><a href="#awards">Awards</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ================= PUBLIC SITE CONTAINER ================= -->
+  <div id="public-site">
+    <div class="container">
+      <div class="row">
+        
+        <!-- LEFT MAIN COLUMN -->
+        <div class="col-main">
+          <!-- Main Profile Photo -->
+          <img id="sidebar-photo" class="profile-photo" src="amit_profile_photo.png" alt="Amit">
+          
+          <!-- About & Bio -->
+          <div id="about" style="margin-top: 10px;">
+            <p><strong>Status:</strong> <span id="main-status">Currently a Research Intern under Prof. Samadrita Bera, NIT Surathkal (June 2026 – Present).</span></p>
+            <p id="main-bio">I am an undergraduate statistics student at Hindu College, University of Delhi (Class of 2028/29). My primary academic interests center on mathematical statistics, particularly statistical inference, likelihood theory, estimation theory, and statistical decision theory, alongside applications in regularized machine learning and quantitative modeling.</p>
+          </div>
+
+          <!-- SELECTED RESEARCH & PREPRINTS -->
+          <div id="research">
+            <h2>Selected Research &amp; Preprints</h2>
+            <p>I am interested in mathematical statistics, estimation theory, and applied probability. The following are ongoing research projects and preprints:</p>
+            <ul id="research-list" class="academic-list"></ul>
+          </div>
+
+          <!-- SELECTED PROJECTS -->
+          <div id="projects">
+            <h2>Selected Projects</h2>
+            <p>Applied machine learning, forecasting pipelines, and quantitative financial modeling projects:</p>
+            <ul id="projects-list" class="academic-list"></ul>
+          </div>
+
+          <!-- INDUSTRY & INTERN EXPERIENCE -->
+          <div id="experience">
+            <h2>Experience</h2>
+            <ul id="experience-list" class="academic-list"></ul>
+          </div>
+
+          <!-- EDUCATION -->
+          <div id="education">
+            <h2>Education</h2>
+            <div id="education-list"></div>
+          </div>
+
+          <!-- HONORS & AWARDS -->
+          <div id="awards">
+            <h2>Honors &amp; Awards</h2>
+            <ul id="awards-list" class="honors-list"></ul>
+          </div>
+
+        </div>
+
+        <!-- RIGHT SIDEBAR COLUMN -->
+        <div class="col-sidebar">
+          <div id="sidebar-name" class="sidebar-name">Amit</div>
+          <div class="sidebar-info">
+            <p><strong id="sidebar-title">Undergraduate Student in Statistics</strong><br>
+            <span id="sidebar-institution">Hindu College, University of Delhi</span></p>
+            
+            <p><strong>Email:</strong><br>
+            <a id="sidebar-email" href="mailto:amit.email.sigin@gmail.com">amit.email.sigin@gmail.com</a></p>
+
+            <p><strong>Mailing Address:</strong><br>
+            <span id="sidebar-address">Department of Statistics, Hindu College<br>University Enclave, Delhi 110007, India</span></p>
+
+            <p style="margin-top: 20px;"><strong>Links:</strong><br>
+            <a id="sidebar-github" href="https://github.com/amit1527" target="_blank" rel="noopener">GitHub Profile ↗</a><br>
+            <a id="sidebar-linkedin" href="https://linkedin.com/in/amit1527" target="_blank" rel="noopener">LinkedIn Profile ↗</a>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <span id="footer-updated">Last updated August 2026</span> &nbsp;|&nbsp; 
+      <span>Academic Homepage of Amit</span>
+    </footer>
+  </div>
+
+  <!-- ================= ADMIN PORTAL OVERLAY ================= -->
+  <div id="admin-portal">
+    <div class="admin-header">
+      <h2 style="margin:0; color:#FFF; font-size:20px;">Plain-Academic Content Manager</h2>
+      <span>Editing Amit's Portfolio</span>
+    </div>
+
+    <div class="admin-container">
+      <!-- SIDEBAR TABS -->
+      <div class="admin-sidebar">
+        <button class="admin-tab-btn active" data-tab="profile">Profile &amp; Sidebar</button>
+        <button class="admin-tab-btn" data-tab="visibility">Section Visibility</button>
+        <button class="admin-tab-btn" data-tab="research">Research &amp; Preprints</button>
+        <button class="admin-tab-btn" data-tab="projects">Projects</button>
+        <button class="admin-tab-btn" data-tab="experience">Experience</button>
+        <button class="admin-tab-btn" data-tab="education">Education</button>
+        <button class="admin-tab-btn" data-tab="awards">Honors &amp; Awards</button>
+        <button class="admin-tab-btn" data-tab="data">Data Backup &amp; Reset</button>
+      </div>
+
+      <!-- TAB PANELS -->
+      <div class="admin-content">
+        
+        <!-- SECTION VISIBILITY TAB -->
+        <div id="tab-visibility" class="admin-tab-panel">
+          <h3>Section Visibility</h3>
+          <p style="font-size:13px; color:#888; margin-bottom:20px;">Toggle which sections are shown on your public website. Changes apply instantly — content is preserved even when hidden.</p>
+
+          <div id="visibility-toggles">
+            <!-- Rendered by admin.js -->
+          </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="tab-profile" class="admin-tab-panel active">
+          <h3>Edit Profile Information</h3>
+          <form id="admin-profile-form">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="adm-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Academic Title</label>
+              <input type="text" id="adm-title" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Institution / College</label>
+              <input type="text" id="adm-institution" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Mailing Address</label>
+              <textarea id="adm-address" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="adm-email" class="form-control" required>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="form-group">
+                <label>GitHub URL</label>
+                <input type="url" id="adm-github" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>LinkedIn URL</label>
+                <input type="url" id="adm-linkedin" class="form-control">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Profile Photo File/URL</label>
+              <input type="text" id="adm-photo" class="form-control" placeholder="amit_profile_photo.png">
+            </div>
+            <div class="form-group">
+              <label>Current Status Text</label>
+              <input type="text" id="adm-status" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Biography Paragraph</label>
+              <textarea id="adm-bio" class="form-control"></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="form-group">
+                <label>Admin Passcode (PIN)</label>
+                <input type="text" id="adm-pin" class="form-control" placeholder="1527">
+              </div>
+              <div class="form-group">
+                <label>Last Updated String</label>
+                <input type="text" id="adm-updated" class="form-control" placeholder="August 2026">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Profile Details</button>
+          </form>
+        </div>
+
+        <!-- RESEARCH TAB -->
+        <div id="tab-research" class="admin-tab-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Research Papers &amp; Preprints</h3>
+            <button id="adm-add-res-btn" class="btn btn-primary">+ Add Research Item</button>
+          </div>
+          <div id="adm-research-container"></div>
+        </div>
+
+        <!-- PROJECTS TAB -->
+        <div id="tab-projects" class="admin-tab-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Selected Projects</h3>
+            <button id="adm-add-proj-btn" class="btn btn-primary">+ Add Project</button>
+          </div>
+          <div id="adm-projects-container"></div>
+        </div>
+
+        <!-- EXPERIENCE TAB -->
+        <div id="tab-experience" class="admin-tab-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Experience &amp; Internships</h3>
+            <button id="adm-add-exp-btn" class="btn btn-primary">+ Add Experience</button>
+          </div>
+          <p style="font-size:13px; color:#888; margin-bottom:15px;">Add, edit or remove internships, research roles, and other work experience entries.</p>
+          <div id="adm-exp-container"></div>
+        </div>
+
+        <!-- EDUCATION TAB -->
+        <div id="tab-education" class="admin-tab-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3>Education Records</h3>
+            <button id="adm-add-edu-btn" class="btn btn-primary">+ Add Education</button>
+          </div>
+          <p style="font-size:13px; color:#888; margin-bottom:15px;">Manage your degrees, boards and certifications. Supports Grade, CGPA, or Percentage fields.</p>
+          <div id="adm-edu-container"></div>
+        </div>
+
+        <!-- AWARDS TAB -->
+        <div id="tab-awards" class="admin-tab-panel">
+          <h3>Honors &amp; Awards</h3>
+          <p class="fine">Enter honors (one per line; support **bold**):</p>
+          <form id="admin-awards-form">
+            <div class="form-group">
+              <textarea id="adm-awards-textarea" class="form-control" style="min-height:120px;"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Honors</button>
+          </form>
+        </div>
+
+        <!-- DATA TAB -->
+        <div id="tab-data" class="admin-tab-panel">
+          <h3>Data Management &amp; JSON Backup</h3>
+          <p style="margin-bottom:15px;">Export your complete homepage content to a JSON file or import a backup.</p>
+          <div style="margin-bottom:15px;">
+            <button id="adm-export-btn" class="btn btn-primary">Download JSON Backup</button>
+          </div>
+          <div style="margin-bottom:15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:600;">Import JSON Backup:</label>
+            <input type="file" id="adm-import-file" accept=".json" class="form-control" style="max-width:300px;">
+          </div>
+          <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border-color);">
+            <button id="adm-reset-btn" class="btn btn-danger">Reset to Default Data</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/admin.js"></script>
+
+</body>
+</html>
