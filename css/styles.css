@@ -1,0 +1,361 @@
+/*
+ * Plain-Academic Inspired Style for Amit's Academic Homepage
+ * Based on Vasilios Mavroudis's Plain-Academic layout (used by Prof. Sourav Chatterjee, Stanford)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&family=Open+Sans:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg-color: #FFFFFF;
+  --text-color: #333333;
+  --link-color: #337AB7;
+  --link-hover: #23527C;
+  --nav-bg: #222222;
+  --nav-text: #9D9D9D;
+  --nav-hover: #FFFFFF;
+  --border-color: #EEEEEE;
+  --font-heading: 'Oswald', sans-serif;
+  --font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+body.dark-mode {
+  --bg-color: #16181C;
+  --text-color: #E2E8F0;
+  --link-color: #60A5FA;
+  --link-hover: #93C5FD;
+  --nav-bg: #0F172A;
+  --nav-text: #94A3B8;
+  --nav-hover: #F8FAFC;
+  --border-color: #334155;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--link-color); text-decoration: none; }
+a:hover { color: var(--link-hover); text-decoration: underline; }
+
+/* Top Navigation Bar */
+.navbar {
+  background-color: var(--nav-bg);
+  border-radius: 0;
+  margin-bottom: 30px;
+  border: none;
+  min-height: 50px;
+  width: 100%;
+}
+
+.navbar-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar-brand {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  padding: 15px 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.navbar-nav {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.navbar-nav a {
+  color: var(--nav-text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 15px 0;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.navbar-nav a:hover, .navbar-nav a.active {
+  color: var(--nav-hover);
+  text-decoration: none;
+}
+
+/* Page Container Layout */
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+.col-main {
+  flex: 0 0 66.666667%;
+  max-width: 66.666667%;
+  padding: 0 15px;
+}
+
+.col-sidebar {
+  flex: 0 0 33.333333%;
+  max-width: 33.333333%;
+  padding: 0 15px;
+}
+
+/* Profile Elements */
+.profile-photo {
+  max-width: 250px;
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.sidebar-name {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-color);
+  line-height: 1.2;
+  margin-bottom: 15px;
+}
+
+.sidebar-info p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Section Headings */
+h2 {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+  margin-top: 35px;
+  margin-bottom: 20px;
+  color: var(--text-color);
+  text-transform: capitalize;
+}
+
+/* Publications & Projects List */
+ul.academic-list {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0 0 30px 0;
+}
+
+ul.academic-list li {
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+ul.academic-list li p {
+  margin: 0 0 6px 0;
+}
+
+.paper-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.paper-venue {
+  font-style: italic;
+  color: #666;
+}
+body.dark-mode .paper-venue { color: #A0AEC0; }
+
+.badge-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--link-color);
+  margin-left: 4px;
+}
+
+.abstract-text {
+  font-size: 14px;
+  text-align: justify;
+  color: var(--text-color);
+  opacity: 0.92;
+}
+
+/* Education Table / List */
+.edu-item {
+  margin-bottom: 15px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border-color);
+}
+.edu-item:last-child { border-bottom: none; }
+.edu-degree { font-weight: 700; font-size: 15px; }
+.edu-meta { font-size: 13px; color: #666; font-family: var(--font-mono); }
+body.dark-mode .edu-meta { color: #94A3B8; }
+
+/* Honors list */
+ul.honors-list {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+/* Footer */
+footer {
+  margin-top: 50px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+  max-width: 1140px;
+  margin: 40px auto 0;
+  padding: 20px 15px;
+}
+
+/* ================= ADMIN OVERLAY & DASHBOARD ================= */
+#admin-portal {
+  display: none;
+  background: var(--bg-color);
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+#admin-portal.visible { display: block; }
+
+.admin-header {
+  background: var(--nav-bg);
+  color: #FFF;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-container {
+  max-width: 1100px;
+  margin: 30px auto;
+  padding: 0 15px;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 25px;
+}
+
+.admin-sidebar {
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.admin-tab-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+}
+.admin-tab-btn.active, .admin-tab-btn:hover {
+  background: var(--link-color);
+  color: #FFF;
+}
+
+.admin-tab-panel {
+  display: none;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 25px;
+}
+.admin-tab-panel.active { display: block; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; text-transform: uppercase; }
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+textarea.form-control { min-height: 90px; }
+
+.btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+  border: none;
+  display: inline-block;
+}
+.btn-primary { background: #337AB7; color: #FFF; }
+.btn-primary:hover { background: #286090; }
+.btn-danger { background: #D9534F; color: #FFF; }
+.btn-danger:hover { background: #C9302C; }
+.btn-default { background: #E6E6E6; color: #333; }
+
+/* Section Visibility Toggles */
+.visibility-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.visibility-row:last-child { border-bottom: none; }
+.visibility-label { font-size: 15px; font-weight: 600; }
+.visibility-desc  { font-size: 12px; color: #888; margin-top: 2px; }
+
+/* iOS-style toggle switch */
+.toggle-switch { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc; border-radius: 26px; transition: 0.25s;
+}
+.toggle-slider::before {
+  content: ""; position: absolute;
+  height: 20px; width: 20px; left: 3px; bottom: 3px;
+  background: white; border-radius: 50%; transition: 0.25s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.toggle-switch input:checked + .toggle-slider { background: #337AB7; }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .col-main, .col-sidebar { flex: 0 0 100%; max-width: 100%; }
+  .admin-container { grid-template-columns: 1fr; }
+  .navbar-container { flex-direction: column; align-items: flex-start; }
+  .navbar-nav { margin-top: 100px; }
+}
