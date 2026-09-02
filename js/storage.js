@@ -15,7 +15,7 @@ export const DEFAULT_DATA = {
 
   profile: {
     name: "Amit",
-    photoUrl: "amit_profile_photo.png",
+    photoUrl: "amit_pic.jpeg",
     title: "Undergraduate Student in Statistics",
     institution: "Hindu College, University of Delhi",
     address: "Department of Statistics, Hindu College\nUniversity Enclave, Delhi 110007, India",
