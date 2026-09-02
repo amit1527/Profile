@@ -8,9 +8,9 @@ export const DEFAULT_DATA = {
   sectionVisibility: {
     research:   true,
     projects:   true,
-    experience: true,
+    experience: false,
     education:  true,
-    awards:     true
+    awards:     false
   },
 
   profile: {
@@ -18,38 +18,29 @@ export const DEFAULT_DATA = {
     photoUrl: "amit_pic.jpeg",
     title: "Undergraduate Student in Statistics",
     institution: "Hindu College, University of Delhi",
-    address: "Department of Statistics, Hindu College\nUniversity Enclave, Delhi 110007, India",
+    address: "--",
     email: "amit.email.sigin@gmail.com",
     github: "https://github.com/amit1527",
     linkedin: "https://linkedin.com/in/amit1527",
-    statusText: "Currently a Research Intern under Prof. Samadrita Bera, NIT Surathkal (June 2026 – Present).",
+    statusText: "Currently a Research Intern under Assistant Prof. Samadrita Bera, NIT Surathkal (June 2026 – Present).",
     introBio: "I am an undergraduate statistics student at Hindu College, University of Delhi (Class of 2028/29). My primary academic interests center on mathematical statistics, particularly statistical inference, likelihood theory, estimation theory, and statistical decision theory, alongside applications in regularized machine learning and quantitative modeling.",
     lastUpdated: "August 2026",
-    pin: "1527"
+    pin: "5555"
   },
 
   researchList: [
     {
       id: "res-1",
-      title: "Theoretical Foundations of Estimation Theory & Fisher Information",
-      venue: "Research Project under Prof. Samadrita Bera, NIT Surathkal",
-      year: "2026",
+      title: "Estimation Theory for the Exponentiated Gumbel Distribution",
+      venue: "Research Project under Assistant Professor Samadrita Bera, NIT Surathkal",
+      year: "1 June - Present",
       pdfUrl: "#",
       githubUrl: "https://github.com/amit1527",
-      abstract: "Studying advanced topics in statistical inference, including Maximum Likelihood Estimation (MLE), Bayesian estimation, sufficiency, completeness, and Uniformly Minimum Variance Unbiased Estimators (UMVUE). Deriving exact bounds for the Cramér–Rao lower bound $\\operatorname{Var}(\\hat{\\theta}) \\ge \\frac{1}{I(\\theta)}$ and analyzing exponential family structure in finite samples."
+      abstract: "Research project on statistical inference for the Exponentiated Gumbel Distribution (EGD), a widely used model in extreme-value analysis such as flood frequency, wind speed, and climate extremes, conducted under the mentorship of Assistant Professor Samadrita Bera, NIT Surathkal. This project derives and compares three major estimation approaches - Maximum Likelihood Estimation (MLE), the Uniformly Minimum Variance Unbiased Estimator (UMVUE), and Bayesian estimation for the EGD's parameters. The work uncovers a non-identifiability issue between the location and shape parameters and introduces a reparameterization to resolve it, enabling closed-form derivation of sufficient and complete statistics and UMVUEs where tractable. Bayesian estimators for the remaining parameters are obtained using Lindley's approximation. Theoretical results are validated through a simulation study in R comparing estimator performance by mean squared error."
     }
   ],
 
   projectsList: [
-    {
-      id: "proj-1",
-      title: "AI-Driven Sales Forecasting & Go-to-Market Optimization",
-      venue: "Applied ML & Software",
-      year: "2026",
-      pdfUrl: "#",
-      githubUrl: "https://github.com/amit1527",
-      abstract: "Developed a regularized regression pipeline (Ridge, Lasso, Elastic Net) modeling revenue response to multi-channel marketing spend. Validated with 5-fold cross-validation and out-of-sample $R^2$/MSE metrics, and deployed via a Flask microservice for real-time inference."
-    },
     {
       id: "proj-2",
       title: "Regression ML Pipeline with Regularization & Cross-Validation",
@@ -86,21 +77,7 @@ export const DEFAULT_DATA = {
       degree: "B.Sc. (Hons.) Statistics",
       institution: "Hindu College, University of Delhi",
       year: "2025 – 2028/29 (in progress)",
-      score: "CGPA: 8.45 / 10.0"
-    },
-    {
-      id: "edu-2",
-      degree: "CBSE Class XII (Senior Secondary)",
-      institution: "Govt. Sarvodaya Co-Ed Vidyalaya, New Delhi",
-      year: "2025",
-      score: "85%+"
-    },
-    {
-      id: "edu-3",
-      degree: "CBSE Class X (Secondary)",
-      institution: "Govt. Sarvodaya Co-Ed Vidyalaya, New Delhi",
-      year: "2023",
-      score: "90%+"
+      score: "CGPA: 8.55 / 10.0"
     }
   ],
 
