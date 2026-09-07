@@ -1,9 +1,30 @@
 /**
- * storage.js - Data engine and LocalStorage persistence for Amit's Plain-Academic Research Site
+ * storage.js - Data engine with Firebase Firestore cloud persistence
+ *
+ * Architecture:
+ *  - An in-memory cache (_cachedData) keeps getData() synchronous so that
+ *    admin.js / app.js code stays unchanged.
+ *  - saveData() writes to Firestore (async, non-blocking).
+ *  - subscribeToChanges() attaches a Firestore real-time listener so the
+ *    public site updates live when the admin saves.
+ *  - Falls back to DEFAULT_DATA if Firestore is not yet configured or offline.
  */
 
-const STORAGE_KEY = 'amit_plain_academic_data_v2';
+import { firebaseConfig, FIRESTORE_DOC_PATH } from './firebase-config.js';
 
+// ─── Detect whether Firebase config has been filled in ───────────────────────
+const FIREBASE_CONFIGURED =
+  firebaseConfig.apiKey && firebaseConfig.apiKey !== 'PASTE_YOUR_API_KEY_HERE';
+
+// ─── In-memory cache (kept in sync by Firestore listener) ────────────────────
+let _cachedData = null;
+let _db = null;            // Firestore instance
+let _unsubscribe = null;   // Firestore listener cleanup fn
+
+// ─── Legacy localStorage key (used only for migration) ───────────────────────
+const LEGACY_STORAGE_KEY = 'amit_plain_academic_data_v2';
+
+// ─────────────────────────────────────────────────────────────────────────────
 export const DEFAULT_DATA = {
   sectionVisibility: {
     research:   true,
@@ -88,37 +109,171 @@ export const DEFAULT_DATA = {
   ]
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Internal helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+function _deepClone(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+async function _getFirestore() {
+  if (_db) return _db;
+  if (!FIREBASE_CONFIGURED) return null;
+
+  try {
+    // Use the Firebase CDN compat (v9 compat) loaded in index.html
+    const app = firebase.apps.length
+      ? firebase.app()
+      : firebase.initializeApp(firebaseConfig);
+    _db = firebase.firestore(app);
+    return _db;
+  } catch (e) {
+    console.warn('[PortfolioStorage] Firebase init failed:', e.message);
+    return null;
+  }
+}
+
+function _docRef(db) {
+  return db
+    .collection(FIRESTORE_DOC_PATH.collection)
+    .doc(FIRESTORE_DOC_PATH.document);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Public API  (mirrors the old PortfolioStorage class)
+// ─────────────────────────────────────────────────────────────────────────────
+
 export class PortfolioStorage {
+
+  /**
+   * Synchronous read from in-memory cache.
+   * Call initAsync() first to populate the cache from Firestore.
+   */
   static getData() {
+    if (_cachedData) return _deepClone(_cachedData);
+    // Fallback: try localStorage migration data, then defaults
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Ensure sectionVisibility always exists (forward-compat for older saves)
         if (!parsed.sectionVisibility) {
           parsed.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
         }
-        return parsed;
+        _cachedData = parsed;
+        return _deepClone(_cachedData);
       }
-    } catch (e) {
-      console.error("Failed to load portfolio data:", e);
-    }
-    return JSON.parse(JSON.stringify(DEFAULT_DATA)); // deep clone
+    } catch (_) { /* ignore */ }
+    _cachedData = _deepClone(DEFAULT_DATA);
+    return _deepClone(_cachedData);
   }
 
-  static saveData(data) {
+  /**
+   * Initialize: fetch data from Firestore and seed cache.
+   * If Firestore is not configured, falls back to localStorage / DEFAULT_DATA.
+   * Returns the data.
+   */
+  static async initAsync() {
+    const db = await _getFirestore();
+    if (!db) {
+      // Not configured — use defaults or legacy localStorage
+      if (!_cachedData) PortfolioStorage.getData(); // seeds _cachedData
+      return _deepClone(_cachedData);
+    }
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      window.dispatchEvent(new CustomEvent('portfolioDataChanged', { detail: data }));
+      const snap = await _docRef(db).get();
+      if (snap.exists) {
+        _cachedData = snap.data();
+        if (!_cachedData.sectionVisibility) {
+          _cachedData.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
+        }
+      } else {
+        // First-time setup: push DEFAULT_DATA to Firestore
+        _cachedData = _deepClone(DEFAULT_DATA);
+        await _docRef(db).set(_cachedData);
+        console.info('[PortfolioStorage] Initialized Firestore with default data.');
+      }
+    } catch (e) {
+      console.error('[PortfolioStorage] Firestore fetch failed, using defaults:', e);
+      if (!_cachedData) _cachedData = _deepClone(DEFAULT_DATA);
+    }
+
+    return _deepClone(_cachedData);
+  }
+
+  /**
+   * Subscribe to real-time changes from Firestore.
+   * callback(data) is called immediately with current data, then on every change.
+   * Returns an unsubscribe function.
+   */
+  static async subscribeToChanges(callback) {
+    const db = await _getFirestore();
+
+    if (!db) {
+      // No Firestore — just call callback once with current data and listen
+      // to the legacy window event as fallback
+      if (!_cachedData) await PortfolioStorage.initAsync();
+      callback(_deepClone(_cachedData));
+
+      const handler = (e) => callback(e.detail || PortfolioStorage.getData());
+      window.addEventListener('portfolioDataChanged', handler);
+      return () => window.removeEventListener('portfolioDataChanged', handler);
+    }
+
+    // Clean up any previous listener
+    if (_unsubscribe) _unsubscribe();
+
+    _unsubscribe = _docRef(db).onSnapshot(
+      (snap) => {
+        if (snap.exists) {
+          _cachedData = snap.data();
+          if (!_cachedData.sectionVisibility) {
+            _cachedData.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
+          }
+          callback(_deepClone(_cachedData));
+        }
+      },
+      (err) => {
+        console.error('[PortfolioStorage] Firestore listener error:', err);
+      }
+    );
+
+    return _unsubscribe;
+  }
+
+  /**
+   * Save data — writes to Firestore (async) AND updates in-memory cache.
+   * Also dispatches the legacy window event so any other listeners still work.
+   */
+  static async saveData(data) {
+    _cachedData = _deepClone(data);
+
+    // Fire the legacy local event immediately (instant UI update in same tab)
+    window.dispatchEvent(new CustomEvent('portfolioDataChanged', { detail: _deepClone(data) }));
+
+    const db = await _getFirestore();
+    if (!db) {
+      // Firestore not configured: fall back to localStorage
+      try {
+        localStorage.setItem(LEGACY_STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error('[PortfolioStorage] localStorage fallback failed:', e);
+      }
+      return true;
+    }
+
+    try {
+      await _docRef(db).set(_deepClone(data));
       return true;
     } catch (e) {
-      console.error("Failed to save portfolio data:", e);
+      console.error('[PortfolioStorage] Firestore save failed:', e);
       return false;
     }
   }
 
-  static resetToDefaults() {
-    PortfolioStorage.saveData(DEFAULT_DATA);
+  static async resetToDefaults() {
+    await PortfolioStorage.saveData(DEFAULT_DATA);
     return DEFAULT_DATA;
   }
 
@@ -136,15 +291,33 @@ export class PortfolioStorage {
     URL.revokeObjectURL(url);
   }
 
-  static importJSON(jsonText) {
+  static async importJSON(jsonText) {
     try {
       const parsed = JSON.parse(jsonText);
       if (parsed && parsed.profile) {
-        PortfolioStorage.saveData(parsed);
+        await PortfolioStorage.saveData(parsed);
         return { success: true, data: parsed };
       } else {
         return { success: false, error: "Invalid JSON structure." };
       }
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  /**
+   * Migrate existing localStorage data up to Firestore (one-time action).
+   * Called from the admin Data tab.
+   */
+  static async migrateFromLocalStorage() {
+    try {
+      const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (!stored) return { success: false, error: 'No localStorage data found.' };
+      const parsed = JSON.parse(stored);
+      if (!parsed || !parsed.profile) return { success: false, error: 'Invalid localStorage data.' };
+      await PortfolioStorage.saveData(parsed);
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return { success: true };
     } catch (e) {
       return { success: false, error: e.message };
     }

@@ -1,15 +1,19 @@
 /**
  * admin.js - CRUD Admin Dashboard for Amit's Plain-Academic Website
+ * (Firebase Firestore edition — saves go to the cloud instantly)
  */
 
 import { PortfolioStorage } from './storage.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize Firestore cache before rendering admin forms
+  await PortfolioStorage.initAsync();
   initAdminTabs();
   loadAdminData();
   setupFormHandlers();
 });
 
+// ─── Tab navigation ───────────────────────────────────────────────────────────
 function initAdminTabs() {
   const tabBtns = document.querySelectorAll('.admin-tab-btn');
   const tabPanels = document.querySelectorAll('.admin-tab-panel');
@@ -28,6 +32,7 @@ function initAdminTabs() {
   });
 }
 
+// ─── Load all form fields from current data ───────────────────────────────────
 function loadAdminData() {
   const data = PortfolioStorage.getData();
   const { profile, researchList, projectsList, experienceList, educationList, awardsList } = data;
@@ -43,7 +48,7 @@ function loadAdminData() {
   setVal('adm-photo', profile.photoUrl);
   setVal('adm-status', profile.statusText);
   setVal('adm-bio', profile.introBio);
-  setVal('adm-pin', profile.pin || '1527');
+  setVal('adm-pin', profile.pin || '5555');
   setVal('adm-updated', profile.lastUpdated);
 
   // Render CRUD Lists
@@ -55,6 +60,7 @@ function loadAdminData() {
   renderAdminAwards(awardsList);
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function setVal(id, val) {
   const el = document.getElementById(id);
   if (el) el.value = val || '';
@@ -65,7 +71,34 @@ function getVal(id) {
   return el ? el.value.trim() : '';
 }
 
+/**
+ * showSaveStatus(btn, promise)
+ * Disables a button, shows "Saving…" while the promise runs,
+ * then shows "Saved ✓" for 2 s before restoring the original label.
+ */
+async function showSaveStatus(btn, promise) {
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  try {
+    await promise;
+    btn.textContent = 'Saved ✓';
+    btn.style.background = '#28a745';
+  } catch (e) {
+    btn.textContent = 'Error ✗';
+    btn.style.background = '#dc3545';
+    console.error(e);
+  }
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = original;
+    btn.style.background = '';
+  }, 2000);
+}
+
+// ─── Form & Button handlers ───────────────────────────────────────────────────
 function setupFormHandlers() {
+
   // 1. Profile Form Save
   const profForm = document.getElementById('admin-profile-form');
   if (profForm) {
@@ -74,28 +107,28 @@ function setupFormHandlers() {
       const data = PortfolioStorage.getData();
       data.profile = {
         ...data.profile,
-        name: getVal('adm-name'),
-        title: getVal('adm-title'),
+        name:        getVal('adm-name'),
+        title:       getVal('adm-title'),
         institution: getVal('adm-institution'),
-        address: getVal('adm-address'),
-        email: getVal('adm-email'),
-        github: getVal('adm-github'),
-        linkedin: getVal('adm-linkedin'),
-        photoUrl: getVal('adm-photo') || 'amit_profile_photo.png',
-        statusText: getVal('adm-status'),
-        introBio: getVal('adm-bio'),
-        pin: getVal('adm-pin') || '1527',
+        address:     getVal('adm-address'),
+        email:       getVal('adm-email'),
+        github:      getVal('adm-github'),
+        linkedin:    getVal('adm-linkedin'),
+        photoUrl:    getVal('adm-photo') || 'amit_pic.jpeg',
+        statusText:  getVal('adm-status'),
+        introBio:    getVal('adm-bio'),
+        pin:         getVal('adm-pin') || '5555',
         lastUpdated: getVal('adm-updated') || 'August 2026'
       };
-      PortfolioStorage.saveData(data);
-      alert('Profile details saved successfully!');
+      const submitBtn = profForm.querySelector('button[type="submit"]');
+      showSaveStatus(submitBtn, PortfolioStorage.saveData(data));
     });
   }
 
   // 2. Add Research Paper
   const addResBtn = document.getElementById('adm-add-res-btn');
   if (addResBtn) {
-    addResBtn.addEventListener('click', () => {
+    addResBtn.addEventListener('click', async () => {
       const data = PortfolioStorage.getData();
       const newRes = {
         id: `res-${Date.now()}`,
@@ -104,19 +137,18 @@ function setupFormHandlers() {
         year: "2026",
         pdfUrl: "#",
         githubUrl: "https://github.com/amit1527",
-        abstract: "Short abstract description of the research paper with MathJax LaTeX formulas like $\\operatorname{Var}(\\hat{\\theta}) \\ge \\frac{1}{I(\\theta)}$."
+        abstract: "Short abstract description of the research paper."
       };
       data.researchList.unshift(newRes);
-      PortfolioStorage.saveData(data);
+      await showSaveStatus(addResBtn, PortfolioStorage.saveData(data));
       renderAdminResearch(data.researchList);
-      alert('New research item added!');
     });
   }
 
   // 3. Add Project
   const addProjBtn = document.getElementById('adm-add-proj-btn');
   if (addProjBtn) {
-    addProjBtn.addEventListener('click', () => {
+    addProjBtn.addEventListener('click', async () => {
       const data = PortfolioStorage.getData();
       const newProj = {
         id: `proj-${Date.now()}`,
@@ -127,16 +159,15 @@ function setupFormHandlers() {
         abstract: "Project summary description."
       };
       data.projectsList.unshift(newProj);
-      PortfolioStorage.saveData(data);
+      await showSaveStatus(addProjBtn, PortfolioStorage.saveData(data));
       renderAdminProjects(data.projectsList);
-      alert('New project added!');
     });
   }
 
-  // 3b. Add Experience
+  // 4. Add Experience
   const addExpBtn = document.getElementById('adm-add-exp-btn');
   if (addExpBtn) {
-    addExpBtn.addEventListener('click', () => {
+    addExpBtn.addEventListener('click', async () => {
       const data = PortfolioStorage.getData();
       if (!data.experienceList) data.experienceList = [];
       const newExp = {
@@ -147,16 +178,15 @@ function setupFormHandlers() {
         details: "Description of responsibilities and key contributions."
       };
       data.experienceList.unshift(newExp);
-      PortfolioStorage.saveData(data);
+      await showSaveStatus(addExpBtn, PortfolioStorage.saveData(data));
       renderAdminExperience(data.experienceList);
-      alert('Experience entry added!');
     });
   }
 
-  // 3c. Add Education
+  // 5. Add Education
   const addEduBtn = document.getElementById('adm-add-edu-btn');
   if (addEduBtn) {
-    addEduBtn.addEventListener('click', () => {
+    addEduBtn.addEventListener('click', async () => {
       const data = PortfolioStorage.getData();
       if (!data.educationList) data.educationList = [];
       const newEdu = {
@@ -167,13 +197,12 @@ function setupFormHandlers() {
         score: "Grade / CGPA"
       };
       data.educationList.push(newEdu);
-      PortfolioStorage.saveData(data);
+      await showSaveStatus(addEduBtn, PortfolioStorage.saveData(data));
       renderAdminEducation(data.educationList);
-      alert('Education record added!');
     });
   }
 
-  // 4. Save Awards Form
+  // 6. Save Awards Form
   const awardsForm = document.getElementById('admin-awards-form');
   if (awardsForm) {
     awardsForm.addEventListener('submit', (e) => {
@@ -181,12 +210,12 @@ function setupFormHandlers() {
       const data = PortfolioStorage.getData();
       const text = getVal('adm-awards-textarea');
       data.awardsList = text.split('\n').map(l => l.trim()).filter(Boolean);
-      PortfolioStorage.saveData(data);
-      alert('Honors & Awards saved!');
+      const submitBtn = awardsForm.querySelector('button[type="submit"]');
+      showSaveStatus(submitBtn, PortfolioStorage.saveData(data));
     });
   }
 
-  // 5. Data Backup Export / Import / Reset
+  // 7. Data Backup Export / Import / Reset / Migrate
   const exportBtn = document.getElementById('adm-export-btn');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => PortfolioStorage.exportJSON());
@@ -198,11 +227,11 @@ function setupFormHandlers() {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (evt) => {
-        const res = PortfolioStorage.importJSON(evt.target.result);
+      reader.onload = async (evt) => {
+        const res = await PortfolioStorage.importJSON(evt.target.result);
         if (res.success) {
           loadAdminData();
-          alert('Data imported successfully!');
+          alert('Data imported successfully to cloud!');
         } else {
           alert('Import failed: ' + res.error);
         }
@@ -213,15 +242,32 @@ function setupFormHandlers() {
 
   const resetBtn = document.getElementById('adm-reset-btn');
   if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (confirm('Reset portfolio to original default data?')) {
-        PortfolioStorage.resetToDefaults();
+    resetBtn.addEventListener('click', async () => {
+      if (confirm('Reset portfolio to original default data? This will overwrite cloud data.')) {
+        await showSaveStatus(resetBtn, PortfolioStorage.resetToDefaults());
         loadAdminData();
-        alert('Data reset to default.');
+      }
+    });
+  }
+
+  // Migrate localStorage → Firestore (shown only if localStorage data exists)
+  const migrateBtn = document.getElementById('adm-migrate-btn');
+  if (migrateBtn) {
+    migrateBtn.addEventListener('click', async () => {
+      if (confirm('Push your existing browser data up to the cloud? This will overwrite current cloud data.')) {
+        const res = await PortfolioStorage.migrateFromLocalStorage();
+        if (res.success) {
+          loadAdminData();
+          alert('Migration successful! Your data is now in the cloud.');
+        } else {
+          alert('Migration failed: ' + res.error);
+        }
       }
     });
   }
 }
+
+// ─── CRUD Render Functions ────────────────────────────────────────────────────
 
 function renderAdminResearch(list) {
   const container = document.getElementById('adm-research-container');
@@ -271,26 +317,25 @@ function renderAdminResearch(list) {
       const data = PortfolioStorage.getData();
       const item = data.researchList.find(x => x.id === id);
       if (item) {
-        item.title = card.querySelector('.res-title').value.trim();
-        item.venue = card.querySelector('.res-venue').value.trim();
-        item.year = card.querySelector('.res-year').value.trim();
-        item.pdfUrl = card.querySelector('.res-pdf').value.trim();
+        item.title    = card.querySelector('.res-title').value.trim();
+        item.venue    = card.querySelector('.res-venue').value.trim();
+        item.year     = card.querySelector('.res-year').value.trim();
+        item.pdfUrl   = card.querySelector('.res-pdf').value.trim();
         item.githubUrl = card.querySelector('.res-github').value.trim();
         item.abstract = card.querySelector('.res-abstract').value.trim();
-        PortfolioStorage.saveData(data);
-        alert('Research paper saved!');
+        showSaveStatus(btn, PortfolioStorage.saveData(data));
       }
     });
   });
 
   container.querySelectorAll('.delete-res-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       const card = e.target.closest('[data-id]');
       const id = card.getAttribute('data-id');
       if (confirm('Delete this paper?')) {
         const data = PortfolioStorage.getData();
         data.researchList = data.researchList.filter(x => x.id !== id);
-        PortfolioStorage.saveData(data);
+        await showSaveStatus(btn, PortfolioStorage.saveData(data));
         renderAdminResearch(data.researchList);
       }
     });
@@ -339,25 +384,24 @@ function renderAdminProjects(list) {
       const data = PortfolioStorage.getData();
       const item = data.projectsList.find(x => x.id === id);
       if (item) {
-        item.title = card.querySelector('.proj-title').value.trim();
-        item.venue = card.querySelector('.proj-venue').value.trim();
-        item.year = card.querySelector('.proj-year').value.trim();
+        item.title     = card.querySelector('.proj-title').value.trim();
+        item.venue     = card.querySelector('.proj-venue').value.trim();
+        item.year      = card.querySelector('.proj-year').value.trim();
         item.githubUrl = card.querySelector('.proj-github').value.trim();
-        item.abstract = card.querySelector('.proj-abstract').value.trim();
-        PortfolioStorage.saveData(data);
-        alert('Project saved!');
+        item.abstract  = card.querySelector('.proj-abstract').value.trim();
+        showSaveStatus(btn, PortfolioStorage.saveData(data));
       }
     });
   });
 
   container.querySelectorAll('.delete-proj-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       const card = e.target.closest('[data-id]');
       const id = card.getAttribute('data-id');
       if (confirm('Delete project?')) {
         const data = PortfolioStorage.getData();
         data.projectsList = data.projectsList.filter(x => x.id !== id);
-        PortfolioStorage.saveData(data);
+        await showSaveStatus(btn, PortfolioStorage.saveData(data));
         renderAdminProjects(data.projectsList);
       }
     });
@@ -406,24 +450,23 @@ function renderAdminExperience(list) {
       const data = PortfolioStorage.getData();
       const item = data.experienceList.find(x => x.id === id);
       if (item) {
-        item.title = card.querySelector('.exp-title').value.trim();
+        item.title       = card.querySelector('.exp-title').value.trim();
         item.institution = card.querySelector('.exp-institution').value.trim();
-        item.year = card.querySelector('.exp-year').value.trim();
-        item.details = card.querySelector('.exp-details').value.trim();
-        PortfolioStorage.saveData(data);
-        alert('Experience entry saved!');
+        item.year        = card.querySelector('.exp-year').value.trim();
+        item.details     = card.querySelector('.exp-details').value.trim();
+        showSaveStatus(btn, PortfolioStorage.saveData(data));
       }
     });
   });
 
   container.querySelectorAll('.delete-exp-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       const card = e.target.closest('[data-id]');
       const id = card.getAttribute('data-id');
       if (confirm('Delete this experience entry?')) {
         const data = PortfolioStorage.getData();
         data.experienceList = data.experienceList.filter(x => x.id !== id);
-        PortfolioStorage.saveData(data);
+        await showSaveStatus(btn, PortfolioStorage.saveData(data));
         renderAdminExperience(data.experienceList);
       }
     });
@@ -472,24 +515,23 @@ function renderAdminEducation(list) {
       const data = PortfolioStorage.getData();
       const item = data.educationList.find(x => x.id === id);
       if (item) {
-        item.degree = card.querySelector('.edu-degree').value.trim();
+        item.degree      = card.querySelector('.edu-degree').value.trim();
         item.institution = card.querySelector('.edu-institution').value.trim();
-        item.year = card.querySelector('.edu-year').value.trim();
-        item.score = card.querySelector('.edu-score').value.trim();
-        PortfolioStorage.saveData(data);
-        alert('Education record saved!');
+        item.year        = card.querySelector('.edu-year').value.trim();
+        item.score       = card.querySelector('.edu-score').value.trim();
+        showSaveStatus(btn, PortfolioStorage.saveData(data));
       }
     });
   });
 
   container.querySelectorAll('.delete-edu-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       const card = e.target.closest('[data-id]');
       const id = card.getAttribute('data-id');
       if (confirm('Delete this education entry?')) {
         const data = PortfolioStorage.getData();
         data.educationList = data.educationList.filter(x => x.id !== id);
-        PortfolioStorage.saveData(data);
+        await showSaveStatus(btn, PortfolioStorage.saveData(data));
         renderAdminEducation(data.educationList);
       }
     });
@@ -528,17 +570,21 @@ function renderVisibilityToggles(vis) {
 
   // Each toggle saves and applies instantly — no Save button needed
   container.querySelectorAll('.vis-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', (e) => {
+    checkbox.addEventListener('change', async (e) => {
       const section = e.target.getAttribute('data-section');
       const data = PortfolioStorage.getData();
       if (!data.sectionVisibility) data.sectionVisibility = {};
       data.sectionVisibility[section] = e.target.checked;
-      PortfolioStorage.saveData(data);
+      await PortfolioStorage.saveData(data);
     });
   });
 }
 
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

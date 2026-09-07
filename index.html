@@ -12,6 +12,10 @@
   
   <link rel="stylesheet" href="css/styles.css">
 
+  <!-- Firebase SDK (compat v9 — no build step needed) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
   <!-- MathJax for rendering LaTeX TeX equations ($...$ inline and $$...$$ display) -->
   <script>
     window.MathJax = {
@@ -205,7 +209,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div class="form-group">
                 <label>Admin Passcode (PIN)</label>
-                <input type="text" id="adm-pin" class="form-control" placeholder="1527">
+                <input type="text" id="adm-pin" class="form-control" placeholder="5555">
               </div>
               <div class="form-group">
                 <label>Last Updated String</label>
@@ -276,6 +280,10 @@
           <div style="margin-bottom:15px;">
             <label style="display:block; margin-bottom:5px; font-weight:600;">Import JSON Backup:</label>
             <input type="file" id="adm-import-file" accept=".json" class="form-control" style="max-width:300px;">
+          </div>
+          <div style="margin-bottom:15px; padding:12px; background:rgba(99,179,237,0.08); border:1px solid rgba(99,179,237,0.3); border-radius:4px;">
+            <p style="font-size:13px; margin-bottom:8px;"><strong>☁️ Migrate browser data to cloud</strong><br>If you had data saved in your browser before connecting Firebase, click below to push it to the cloud (one-time action).</p>
+            <button id="adm-migrate-btn" class="btn btn-primary">Migrate Local Data → Cloud</button>
           </div>
           <div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border-color);">
             <button id="adm-reset-btn" class="btn btn-danger">Reset to Default Data</button>

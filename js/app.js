@@ -4,18 +4,22 @@
 
 import { PortfolioStorage } from './storage.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize: fetch data from Firestore (or defaults) before first render
+  await PortfolioStorage.initAsync();
   renderPublicSite();
   setupEventListeners();
   checkAdminUrlAccess();
 
-  window.addEventListener('portfolioDataChanged', () => {
-    renderPublicSite();
+  // Subscribe to real-time Firestore changes — public site updates instantly
+  // when admin saves without any page refresh
+  PortfolioStorage.subscribeToChanges((data) => {
+    renderPublicSite(data);
   });
 });
 
-function renderPublicSite() {
-  const data = PortfolioStorage.getData();
+function renderPublicSite(data) {
+  if (!data) data = PortfolioStorage.getData();
   const { profile, researchList, projectsList, experienceList, educationList, awardsList } = data;
 
   // 1. Navbar & Header Brand
@@ -185,39 +189,27 @@ function setupEventListeners() {
 }
 
 function checkAdminUrlAccess() {
-  console.log('Checking admin URL access...');
-  console.log('Current URL:', window.location.href);
-  console.log('Search params:', window.location.search);
-  
   const urlParams = new URLSearchParams(window.location.search);
   const adminParam = urlParams.get('admin');
-  console.log('Admin parameter:', adminParam);
-  
+
   if (adminParam === 'true') {
-    console.log('Admin parameter detected, opening auth...');
     openAdminAuth(() => {
-      console.log('Auth successful, showing admin panel...');
       const publicSite = document.getElementById('public-site');
       const adminPortal = document.getElementById('admin-portal');
-      console.log('Public site element:', publicSite);
-      console.log('Admin portal element:', adminPortal);
-      
+
       if (publicSite && adminPortal) {
         publicSite.style.display = 'none';
         adminPortal.classList.add('visible');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        console.log('Admin panel should now be visible');
       }
     });
-  } else {
-    console.log('No admin parameter found');
   }
 }
 
 function openAdminAuth(onSuccess) {
-  const pin = prompt("Enter Admin Passcode (Default: 1527):", "1527");
+  const pin = prompt("Enter Admin Passcode (Default: 5555):", "");
   const data = PortfolioStorage.getData();
-  const expectedPin = (data.profile && data.profile.pin) || '1527';
+  const expectedPin = (data.profile && data.profile.pin) || '5555';
 
   if (pin === expectedPin || pin === '1527') {
     onSuccess();
