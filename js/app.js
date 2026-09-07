@@ -61,121 +61,192 @@ function renderPublicSite(data) {
   const bioEl = document.getElementById('main-bio');
   if (bioEl) bioEl.textContent = profile.introBio;
 
-  // 4. Render Selected Research
-  renderResearch(researchList);
+  // 4. Dynamic Navbar & Sections in configured order
+  renderNavbar(data.sections || []);
+  renderSections(data);
 
-  // 5. Render Selected Projects
-  renderProjects(projectsList);
-
-  // 6. Render Experience
-  renderExperience(experienceList);
-
-  // 7. Render Education
-  renderEducation(educationList);
-
-  // 8. Render Honors & Awards
-  renderAwards(awardsList);
-
-  // 9. Footer
+  // 5. Footer
   const footerDate = document.getElementById('footer-updated');
   if (footerDate) footerDate.textContent = `Last updated ${profile.lastUpdated || 'August 2026'}`;
-
-  // 10. Apply section visibility
-  applyVisibility(data.sectionVisibility || {});
 
   // Trigger MathJax LaTeX rendering
   triggerMathJax();
 }
 
-// Show/hide each public section AND its navbar link based on admin toggle settings
-function applyVisibility(vis) {
-  const sectionMap = {
-    research:   document.getElementById('research'),
-    projects:   document.getElementById('projects'),
-    experience: document.getElementById('experience'),
-    education:  document.getElementById('education'),
-    awards:     document.getElementById('awards'),
-  };
+function renderNavbar(sections) {
+  const container = document.getElementById('navbar-links');
+  if (!container) return;
 
-  for (const [key, el] of Object.entries(sectionMap)) {
-    const visible = vis[key] !== false;
+  const visibleSections = (sections || []).filter(s => s.visible !== false);
+  let html = `<li><a href="#about" class="active">Home</a></li>`;
+  visibleSections.forEach(s => {
+    html += `<li data-nav="${s.id}"><a href="#${s.id}">${escapeHtml(s.label)}</a></li>`;
+  });
+  container.innerHTML = html;
+}
 
-    // Show/hide the section on the page
-    if (el) el.style.display = visible ? '' : 'none';
+function renderSections(data) {
+  const container = document.getElementById('sections-container');
+  if (!container) return;
 
-    // Show/hide the matching navbar link
-    const navItem = document.querySelector(`[data-nav="${key}"]`);
-    if (navItem) navItem.style.display = visible ? '' : 'none';
+  const sections = (data.sections || []).filter(s => s.visible !== false);
+  const { researchList, projectsList, experienceList, educationList, awardsList } = data;
+
+  let html = '';
+
+  for (const sec of sections) {
+    const titleHtml = `<h2>${escapeHtml(sec.label)}</h2>`;
+    const introHtml = sec.intro ? `<p>${escapeHtml(sec.intro)}</p>` : '';
+
+    if (sec.type === 'papers') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <ul class="academic-list">
+            ${renderResearchListHtml(researchList)}
+          </ul>
+        </div>
+      `;
+    } else if (sec.type === 'projects') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <ul class="academic-list">
+            ${renderProjectsListHtml(projectsList)}
+          </ul>
+        </div>
+      `;
+    } else if (sec.type === 'experience') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <ul class="academic-list">
+            ${renderExperienceListHtml(experienceList)}
+          </ul>
+        </div>
+      `;
+    } else if (sec.type === 'education') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <div>
+            ${renderEducationListHtml(educationList)}
+          </div>
+        </div>
+      `;
+    } else if (sec.type === 'awards') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <ul class="honors-list">
+            ${renderAwardsListHtml(awardsList)}
+          </ul>
+        </div>
+      `;
+    } else if (sec.type === 'text') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <div class="custom-text-content">
+            ${formatTextParagraphs(sec.content)}
+          </div>
+        </div>
+      `;
+    } else if (sec.type === 'bullets') {
+      html += `
+        <div id="${sec.id}" class="portfolio-section">
+          ${titleHtml}
+          ${introHtml}
+          <ul class="academic-list">
+            ${renderBulletListHtml(sec.content)}
+          </ul>
+        </div>
+      `;
+    }
   }
+
+  container.innerHTML = html;
 }
 
-function renderResearch(list) {
-  const container = document.getElementById('research-list');
-  if (!container || !list) return;
-
-  container.innerHTML = list.map(item => `
+function renderResearchListHtml(list) {
+  if (!list || list.length === 0) return '';
+  return list.map(item => `
     <li>
       <p>
-        <a class="paper-title" href="${item.githubUrl || item.pdfUrl || '#'}">${item.title}</a>
-        <span class="paper-venue"> ${item.venue || ''}.</span> ${item.year || ''}.
-        ${item.pdfUrl && item.pdfUrl !== '#' ? `<a class="badge-link" href="${item.pdfUrl}">[pdf]</a>` : ''}
-        ${item.githubUrl ? `<a class="badge-link" href="${item.githubUrl}" target="_blank">[github]</a>` : ''}
+        <a class="paper-title" href="${item.githubUrl || item.pdfUrl || '#'}">${escapeHtml(item.title)}</a>
+        <span class="paper-venue"> ${escapeHtml(item.venue || '')}.</span> ${escapeHtml(item.year || '')}.
+        ${item.pdfUrl && item.pdfUrl !== '#' ? `<a class="badge-link" href="${escapeHtml(item.pdfUrl)}">[pdf]</a>` : ''}
+        ${item.githubUrl ? `<a class="badge-link" href="${escapeHtml(item.githubUrl)}" target="_blank">[github]</a>` : ''}
       </p>
-      <p class="abstract-text">${item.abstract || ''}</p>
+      <p class="abstract-text">${escapeHtml(item.abstract || '')}</p>
     </li>
   `).join('');
 }
 
-function renderProjects(list) {
-  const container = document.getElementById('projects-list');
-  if (!container || !list) return;
-
-  container.innerHTML = list.map(item => `
+function renderProjectsListHtml(list) {
+  if (!list || list.length === 0) return '';
+  return list.map(item => `
     <li>
       <p>
-        <a class="paper-title" href="${item.githubUrl || '#'}">${item.title}</a>
-        <span class="paper-venue"> ${item.venue || ''}.</span> ${item.year || ''}.
-        ${item.githubUrl ? `<a class="badge-link" href="${item.githubUrl}" target="_blank">[github]</a>` : ''}
+        <a class="paper-title" href="${item.githubUrl || '#'}">${escapeHtml(item.title)}</a>
+        <span class="paper-venue"> ${escapeHtml(item.venue || '')}.</span> ${escapeHtml(item.year || '')}.
+        ${item.githubUrl ? `<a class="badge-link" href="${escapeHtml(item.githubUrl)}" target="_blank">[github]</a>` : ''}
       </p>
-      <p class="abstract-text">${item.abstract || ''}</p>
+      <p class="abstract-text">${escapeHtml(item.abstract || '')}</p>
     </li>
   `).join('');
 }
 
-function renderExperience(list) {
-  const container = document.getElementById('experience-list');
-  if (!container || !list) return;
-
-  container.innerHTML = list.map(item => `
+function renderExperienceListHtml(list) {
+  if (!list || list.length === 0) return '';
+  return list.map(item => `
     <li>
       <p>
-        <strong class="paper-title">${item.title}</strong> — <span class="paper-venue">${item.institution}</span> (${item.year})
+        <strong class="paper-title">${escapeHtml(item.title)}</strong> — <span class="paper-venue">${escapeHtml(item.institution)}</span> (${escapeHtml(item.year)})
       </p>
-      <p class="abstract-text">${item.details}</p>
+      <p class="abstract-text">${escapeHtml(item.details)}</p>
     </li>
   `).join('');
 }
 
-function renderEducation(list) {
-  const container = document.getElementById('education-list');
-  if (!container || !list) return;
-
-  container.innerHTML = list.map(item => `
+function renderEducationListHtml(list) {
+  if (!list || list.length === 0) return '';
+  return list.map(item => `
     <div class="edu-item">
-      <div class="edu-degree">${item.degree}</div>
-      <div>${item.institution}</div>
-      <div class="edu-meta">${item.year} &nbsp;|&nbsp; <strong>${item.score}</strong></div>
+      <div class="edu-degree">${escapeHtml(item.degree)}</div>
+      <div>${escapeHtml(item.institution)}</div>
+      <div class="edu-meta">${escapeHtml(item.year)} &nbsp;|&nbsp; <strong>${escapeHtml(item.score)}</strong></div>
     </div>
   `).join('');
 }
 
-function renderAwards(list) {
-  const container = document.getElementById('awards-list');
-  if (!container || !list) return;
-
-  container.innerHTML = list.map(item => `
-    <li>${formatMarkdownBold(item)}</li>
+function renderAwardsListHtml(list) {
+  if (!list || list.length === 0) return '';
+  return list.map(item => `
+    <li>${formatMarkdownBold(escapeHtml(item))}</li>
   `).join('');
+}
+
+function renderBulletListHtml(content) {
+  if (!content) return '';
+  const lines = Array.isArray(content)
+    ? content
+    : content.split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.map(line => `
+    <li>${formatMarkdownBold(escapeHtml(line))}</li>
+  `).join('');
+}
+
+function formatTextParagraphs(content) {
+  if (!content) return '';
+  const paras = content.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+  return paras.map(p => `<p>${formatMarkdownBold(escapeHtml(p))}</p>`).join('');
 }
 
 function triggerMathJax() {
@@ -222,3 +293,13 @@ function formatMarkdownBold(text) {
   if (!text) return '';
   return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 }
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+

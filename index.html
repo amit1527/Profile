@@ -36,7 +36,7 @@
   <nav class="navbar">
     <div class="navbar-container">
       <a href="index.html" id="nav-brand" class="navbar-brand">Amit</a>
-      <ul class="navbar-nav">
+      <ul class="navbar-nav" id="navbar-links">
         <li><a href="#about" class="active">Home</a></li>
         <li data-nav="research"><a href="#research">Research</a></li>
         <li data-nav="projects"><a href="#projects">Projects</a></li>
@@ -63,36 +63,9 @@
             <p id="main-bio">I am an undergraduate statistics student at Hindu College, University of Delhi (Class of 2028/29). My primary academic interests center on mathematical statistics, particularly statistical inference, likelihood theory, estimation theory, and statistical decision theory, alongside applications in regularized machine learning and quantitative modeling.</p>
           </div>
 
-          <!-- SELECTED RESEARCH & PREPRINTS -->
-          <div id="research">
-            <h2>Selected Research &amp; Preprints</h2>
-            <p>I am interested in mathematical statistics, estimation theory, and applied probability. The following are ongoing research projects and preprints:</p>
-            <ul id="research-list" class="academic-list"></ul>
-          </div>
-
-          <!-- SELECTED PROJECTS -->
-          <div id="projects">
-            <h2>Selected Projects</h2>
-            <p>Applied machine learning, forecasting pipelines, and quantitative financial modeling projects:</p>
-            <ul id="projects-list" class="academic-list"></ul>
-          </div>
-
-          <!-- INDUSTRY & INTERN EXPERIENCE -->
-          <div id="experience">
-            <h2>Experience</h2>
-            <ul id="experience-list" class="academic-list"></ul>
-          </div>
-
-          <!-- EDUCATION -->
-          <div id="education">
-            <h2>Education</h2>
-            <div id="education-list"></div>
-          </div>
-
-          <!-- HONORS & AWARDS -->
-          <div id="awards">
-            <h2>Honors &amp; Awards</h2>
-            <ul id="awards-list" class="honors-list"></ul>
+          <!-- DYNAMIC SECTIONS CONTAINER -->
+          <div id="sections-container">
+            <!-- Rendered dynamically according to user's order & visibility settings -->
           </div>
 
         </div>
@@ -138,7 +111,7 @@
       <!-- SIDEBAR TABS -->
       <div class="admin-sidebar">
         <button class="admin-tab-btn active" data-tab="profile">Profile &amp; Sidebar</button>
-        <button class="admin-tab-btn" data-tab="visibility">Section Visibility</button>
+        <button class="admin-tab-btn" data-tab="sections">Manage Sections</button>
         <button class="admin-tab-btn" data-tab="research">Research &amp; Preprints</button>
         <button class="admin-tab-btn" data-tab="projects">Projects</button>
         <button class="admin-tab-btn" data-tab="experience">Experience</button>
@@ -150,12 +123,45 @@
       <!-- TAB PANELS -->
       <div class="admin-content">
         
-        <!-- SECTION VISIBILITY TAB -->
-        <div id="tab-visibility" class="admin-tab-panel">
-          <h3>Section Visibility</h3>
-          <p style="font-size:13px; color:#888; margin-bottom:20px;">Toggle which sections are shown on your public website. Changes apply instantly — content is preserved even when hidden.</p>
+        <!-- SECTIONS MANAGER TAB -->
+        <div id="tab-sections" class="admin-tab-panel">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h3 style="margin:0 0 4px 0;">Manage Sections &amp; Ordering</h3>
+              <p style="font-size:13px; color:#888; margin:0;">Add custom sections (e.g. Research Interests), reorder sections with ↑/↓, edit titles/content, or toggle visibility.</p>
+            </div>
+            <button id="adm-add-section-btn" class="btn btn-primary">+ Add New Section</button>
+          </div>
 
-          <div id="visibility-toggles">
+          <!-- Add Section Form (toggleable) -->
+          <div id="adm-new-section-box" style="display:none; background:rgba(51,122,183,0.06); border:1px solid rgba(51,122,183,0.25); padding:16px; border-radius:4px; margin-bottom:20px;">
+            <h4 style="margin:0 0 12px 0;">Add Custom Section</h4>
+            <div class="form-group">
+              <label>Section Title</label>
+              <input type="text" id="new-sec-title" class="form-control" placeholder="e.g. Research Interests, Teaching, Invited Talks">
+            </div>
+            <div class="form-group">
+              <label>Section Format</label>
+              <select id="new-sec-type" class="form-control">
+                <option value="text">Paragraph / Text (e.g. Research Interests, Overview)</option>
+                <option value="bullets">Bullet List (e.g. Invited Talks, Grants, Activities)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Section Subtitle / Intro (Optional)</label>
+              <input type="text" id="new-sec-intro" class="form-control" placeholder="Optional brief introductory line">
+            </div>
+            <div class="form-group">
+              <label id="new-sec-content-label">Content (Markdown / Text)</label>
+              <textarea id="new-sec-content" class="form-control" placeholder="Write paragraph text or bullet points (one per line)..." style="min-height:90px;"></textarea>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button id="btn-save-new-section" class="btn btn-primary">Create Section</button>
+              <button id="btn-cancel-new-section" class="btn btn-default">Cancel</button>
+            </div>
+          </div>
+
+          <div id="sections-manager-list">
             <!-- Rendered by admin.js -->
           </div>
         </div>

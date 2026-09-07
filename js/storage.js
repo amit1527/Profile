@@ -24,8 +24,53 @@ let _unsubscribe = null;   // Firestore listener cleanup fn
 // ─── Legacy localStorage key (used only for migration) ───────────────────────
 const LEGACY_STORAGE_KEY = 'amit_plain_academic_data_v2';
 
+export const DEFAULT_SECTIONS = [
+  {
+    id: 'research',
+    label: 'Selected Research & Preprints',
+    type: 'papers',
+    builtin: true,
+    visible: true,
+    intro: 'I am interested in mathematical statistics, estimation theory, and applied probability. The following are ongoing research projects and preprints:'
+  },
+  {
+    id: 'projects',
+    label: 'Selected Projects',
+    type: 'projects',
+    builtin: true,
+    visible: true,
+    intro: 'Applied machine learning, forecasting pipelines, and quantitative financial modeling projects:'
+  },
+  {
+    id: 'experience',
+    label: 'Experience',
+    type: 'experience',
+    builtin: true,
+    visible: false,
+    intro: ''
+  },
+  {
+    id: 'education',
+    label: 'Education',
+    type: 'education',
+    builtin: true,
+    visible: true,
+    intro: ''
+  },
+  {
+    id: 'awards',
+    label: 'Honors & Awards',
+    type: 'awards',
+    builtin: true,
+    visible: false,
+    intro: ''
+  }
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 export const DEFAULT_DATA = {
+  sections: DEFAULT_SECTIONS,
+
   sectionVisibility: {
     research:   true,
     projects:   true,
@@ -117,6 +162,35 @@ function _deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function _ensureSections(data) {
+  if (!data) return;
+
+  // If sections array doesn't exist or is empty, synthesize from DEFAULT_SECTIONS + sectionVisibility
+  if (!data.sections || !Array.isArray(data.sections) || data.sections.length === 0) {
+    data.sections = DEFAULT_SECTIONS.map(s => {
+      const isVis = data.sectionVisibility && data.sectionVisibility[s.id] !== undefined
+        ? data.sectionVisibility[s.id]
+        : s.visible;
+      return { ...s, visible: isVis };
+    });
+  } else {
+    // Ensure all required fields exist on each section
+    data.sections.forEach(s => {
+      if (s.visible === undefined) s.visible = true;
+      if (s.intro === undefined) s.intro = '';
+      if (!s.label) s.label = s.id;
+    });
+  }
+
+  // Keep sectionVisibility in sync for backwards compatibility
+  if (!data.sectionVisibility) data.sectionVisibility = {};
+  data.sections.forEach(s => {
+    if (s.builtin) {
+      data.sectionVisibility[s.id] = s.visible !== false;
+    }
+  });
+}
+
 async function _getFirestore() {
   if (_db) return _db;
   if (!FIREBASE_CONFIGURED) return null;
@@ -151,20 +225,22 @@ export class PortfolioStorage {
    * Call initAsync() first to populate the cache from Firestore.
    */
   static getData() {
-    if (_cachedData) return _deepClone(_cachedData);
+    if (_cachedData) {
+      _ensureSections(_cachedData);
+      return _deepClone(_cachedData);
+    }
     // Fallback: try localStorage migration data, then defaults
     try {
       const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (!parsed.sectionVisibility) {
-          parsed.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
-        }
+        _ensureSections(parsed);
         _cachedData = parsed;
         return _deepClone(_cachedData);
       }
     } catch (_) { /* ignore */ }
     _cachedData = _deepClone(DEFAULT_DATA);
+    _ensureSections(_cachedData);
     return _deepClone(_cachedData);
   }
 
@@ -178,6 +254,7 @@ export class PortfolioStorage {
     if (!db) {
       // Not configured — use defaults or legacy localStorage
       if (!_cachedData) PortfolioStorage.getData(); // seeds _cachedData
+      _ensureSections(_cachedData);
       return _deepClone(_cachedData);
     }
 
@@ -185,18 +262,18 @@ export class PortfolioStorage {
       const snap = await _docRef(db).get();
       if (snap.exists) {
         _cachedData = snap.data();
-        if (!_cachedData.sectionVisibility) {
-          _cachedData.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
-        }
+        _ensureSections(_cachedData);
       } else {
         // First-time setup: push DEFAULT_DATA to Firestore
         _cachedData = _deepClone(DEFAULT_DATA);
+        _ensureSections(_cachedData);
         await _docRef(db).set(_cachedData);
         console.info('[PortfolioStorage] Initialized Firestore with default data.');
       }
     } catch (e) {
       console.error('[PortfolioStorage] Firestore fetch failed, using defaults:', e);
       if (!_cachedData) _cachedData = _deepClone(DEFAULT_DATA);
+      _ensureSections(_cachedData);
     }
 
     return _deepClone(_cachedData);
@@ -214,9 +291,14 @@ export class PortfolioStorage {
       // No Firestore — just call callback once with current data and listen
       // to the legacy window event as fallback
       if (!_cachedData) await PortfolioStorage.initAsync();
+      _ensureSections(_cachedData);
       callback(_deepClone(_cachedData));
 
-      const handler = (e) => callback(e.detail || PortfolioStorage.getData());
+      const handler = (e) => {
+        const d = e.detail || PortfolioStorage.getData();
+        _ensureSections(d);
+        callback(d);
+      };
       window.addEventListener('portfolioDataChanged', handler);
       return () => window.removeEventListener('portfolioDataChanged', handler);
     }
@@ -228,9 +310,7 @@ export class PortfolioStorage {
       (snap) => {
         if (snap.exists) {
           _cachedData = snap.data();
-          if (!_cachedData.sectionVisibility) {
-            _cachedData.sectionVisibility = { ...DEFAULT_DATA.sectionVisibility };
-          }
+          _ensureSections(_cachedData);
           callback(_deepClone(_cachedData));
         }
       },
@@ -247,6 +327,7 @@ export class PortfolioStorage {
    * Also dispatches the legacy window event so any other listeners still work.
    */
   static async saveData(data) {
+    _ensureSections(data);
     _cachedData = _deepClone(data);
 
     // Fire the legacy local event immediately (instant UI update in same tab)

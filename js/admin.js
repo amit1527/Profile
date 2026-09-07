@@ -52,7 +52,7 @@ function loadAdminData() {
   setVal('adm-updated', profile.lastUpdated);
 
   // Render CRUD Lists
-  renderVisibilityToggles(data.sectionVisibility || {});
+  renderSectionsManager(data.sections || []);
   renderAdminResearch(researchList);
   renderAdminProjects(projectsList);
   renderAdminExperience(experienceList);
@@ -263,6 +263,92 @@ function setupFormHandlers() {
           alert('Migration failed: ' + res.error);
         }
       }
+    });
+  }
+
+  // 8. Add Section Controls
+  const addSecBtn = document.getElementById('adm-add-section-btn');
+  const newSecBox = document.getElementById('adm-new-section-box');
+  const cancelNewSecBtn = document.getElementById('btn-cancel-new-section');
+  const saveNewSecBtn = document.getElementById('btn-save-new-section');
+  const newSecType = document.getElementById('new-sec-type');
+  const newSecContentLabel = document.getElementById('new-sec-content-label');
+  const newSecContent = document.getElementById('new-sec-content');
+
+  if (addSecBtn && newSecBox) {
+    addSecBtn.addEventListener('click', () => {
+      const isOpen = newSecBox.style.display !== 'none';
+      newSecBox.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        const titleEl = document.getElementById('new-sec-title');
+        if (titleEl) titleEl.focus();
+      }
+    });
+  }
+
+  if (cancelNewSecBtn && newSecBox) {
+    cancelNewSecBtn.addEventListener('click', () => {
+      newSecBox.style.display = 'none';
+      setVal('new-sec-title', '');
+      setVal('new-sec-intro', '');
+      setVal('new-sec-content', '');
+    });
+  }
+
+  if (newSecType && newSecContentLabel && newSecContent) {
+    newSecType.addEventListener('change', () => {
+      if (newSecType.value === 'bullets') {
+        newSecContentLabel.textContent = 'Bullet Items (one item per line)';
+        newSecContent.placeholder = 'Item 1\nItem 2\nItem 3...';
+      } else {
+        newSecContentLabel.textContent = 'Content (Markdown / Paragraph text)';
+        newSecContent.placeholder = 'Write paragraph text here...';
+      }
+    });
+  }
+
+  if (saveNewSecBtn) {
+    saveNewSecBtn.addEventListener('click', async () => {
+      const title = getVal('new-sec-title');
+      if (!title) {
+        alert('Please enter a section title.');
+        return;
+      }
+
+      const type = getVal('new-sec-type') || 'text';
+      const intro = getVal('new-sec-intro');
+      const content = getVal('new-sec-content');
+
+      const data = PortfolioStorage.getData();
+      if (!data.sections) data.sections = [];
+
+      const newId = `sec-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || Date.now()}`;
+      let uniqueId = newId;
+      let counter = 1;
+      while (data.sections.some(s => s.id === uniqueId)) {
+        uniqueId = `${newId}-${counter++}`;
+      }
+
+      const newSection = {
+        id: uniqueId,
+        label: title,
+        type: type,
+        builtin: false,
+        visible: true,
+        intro: intro,
+        content: content
+      };
+
+      data.sections.push(newSection);
+      await showSaveStatus(saveNewSecBtn, PortfolioStorage.saveData(data));
+      
+      // Reset & hide
+      setVal('new-sec-title', '');
+      setVal('new-sec-intro', '');
+      setVal('new-sec-content', '');
+      if (newSecBox) newSecBox.style.display = 'none';
+
+      renderSectionsManager(data.sections);
     });
   }
 }
@@ -543,39 +629,190 @@ function renderAdminAwards(list) {
   if (area) area.value = (list || []).join('\n');
 }
 
-function renderVisibilityToggles(vis) {
-  const container = document.getElementById('visibility-toggles');
+function renderSectionsManager(sections) {
+  const container = document.getElementById('sections-manager-list');
   if (!container) return;
 
-  const sections = [
-    { key: 'research',   label: 'Research & Preprints', desc: 'Your academic papers and ongoing research projects.' },
-    { key: 'projects',   label: 'Selected Projects',    desc: 'Software and applied statistics projects with GitHub links.' },
-    { key: 'experience', label: 'Experience',            desc: 'Internships and industry roles.' },
-    { key: 'education',  label: 'Education',             desc: 'Degrees, boards and academic qualifications.' },
-    { key: 'awards',     label: 'Honors & Awards',       desc: 'Competitive exam results and recognitions.' },
-  ];
+  if (!sections || sections.length === 0) {
+    container.innerHTML = '<p style="color:#888;">No sections defined.</p>';
+    return;
+  }
 
-  container.innerHTML = sections.map(s => `
-    <div class="visibility-row">
-      <div>
-        <div class="visibility-label">${s.label}</div>
-        <div class="visibility-desc">${s.desc}</div>
+  container.innerHTML = sections.map((sec, idx) => {
+    const isFirst = idx === 0;
+    const isLast = idx === sections.length - 1;
+    const isCustom = !sec.builtin;
+    const badge = isCustom
+      ? `<span class="sec-badge sec-badge-custom">Custom (${escapeHtml(sec.type)})</span>`
+      : `<span class="sec-badge sec-badge-builtin">Built-in: ${escapeHtml(sec.type)}</span>`;
+
+    return `
+      <div class="section-item-card" data-sec-id="${sec.id}" data-index="${idx}">
+        <div class="section-row-header">
+          <!-- Reordering arrows -->
+          <div class="section-reorder-controls">
+            <button class="btn-arrow btn-move-up" title="Move Up" ${isFirst ? 'disabled' : ''}>▲</button>
+            <button class="btn-arrow btn-move-down" title="Move Down" ${isLast ? 'disabled' : ''}>▼</button>
+          </div>
+
+          <!-- Section title and preview -->
+          <div class="section-info-main">
+            <div class="section-title-line">
+              <span class="section-label-text">${escapeHtml(sec.label)}</span>
+              ${badge}
+            </div>
+            ${sec.intro ? `<div class="section-intro-preview">${escapeHtml(sec.intro)}</div>` : ''}
+          </div>
+
+          <!-- Controls: Toggle, Edit, Delete -->
+          <div class="section-row-actions">
+            <label class="toggle-switch" title="Toggle section visibility on public site">
+              <input type="checkbox" class="sec-vis-toggle" ${sec.visible !== false ? 'checked' : ''}>
+              <span class="toggle-slider"></span>
+            </label>
+            <button class="btn btn-default btn-sm btn-edit-sec" title="Edit section details">Edit</button>
+            ${isCustom ? `<button class="btn btn-danger btn-sm btn-del-sec" title="Delete section">Delete</button>` : ''}
+          </div>
+        </div>
+
+        <!-- Inline Edit Panel (collapsed by default) -->
+        <div class="section-inline-edit" style="display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--border-color);">
+          <div class="form-group">
+            <label>Section Title (as displayed on page and navbar)</label>
+            <input type="text" class="form-control edit-sec-title" value="${escapeHtml(sec.label)}">
+          </div>
+          <div class="form-group">
+            <label>Introductory Subtitle / Blurb (Optional)</label>
+            <input type="text" class="form-control edit-sec-intro" value="${escapeHtml(sec.intro || '')}">
+          </div>
+          ${isCustom ? `
+            <div class="form-group">
+              <label>${sec.type === 'bullets' ? 'Bullet Items (one per line)' : 'Section Content (Paragraph / Markdown)'}</label>
+              <textarea class="form-control edit-sec-content" style="min-height:90px;">${escapeHtml(Array.isArray(sec.content) ? sec.content.join('\n') : (sec.content || ''))}</textarea>
+            </div>
+          ` : `
+            <p style="font-size:12px; color:#888; margin-bottom:10px;">
+              <em>Note:</em> To add or edit items in this built-in section, click its dedicated tab in the left menu.
+            </p>
+          `}
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-sm btn-save-edit-sec">Save Changes</button>
+            <button class="btn btn-default btn-sm btn-cancel-edit-sec">Cancel</button>
+          </div>
+        </div>
       </div>
-      <label class="toggle-switch" title="Toggle ${s.label} visibility">
-        <input type="checkbox" class="vis-checkbox" data-section="${s.key}" ${vis[s.key] !== false ? 'checked' : ''}>
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
-  // Each toggle saves and applies instantly — no Save button needed
-  container.querySelectorAll('.vis-checkbox').forEach(checkbox => {
-    checkbox.addEventListener('change', async (e) => {
-      const section = e.target.getAttribute('data-section');
+  // 1. Move Up
+  container.querySelectorAll('.btn-move-up').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const card = e.target.closest('.section-item-card');
+      const idx = parseInt(card.getAttribute('data-index'), 10);
+      if (idx > 0) {
+        const data = PortfolioStorage.getData();
+        const temp = data.sections[idx];
+        data.sections[idx] = data.sections[idx - 1];
+        data.sections[idx - 1] = temp;
+        await PortfolioStorage.saveData(data);
+        renderSectionsManager(data.sections);
+      }
+    });
+  });
+
+  // 2. Move Down
+  container.querySelectorAll('.btn-move-down').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const card = e.target.closest('.section-item-card');
+      const idx = parseInt(card.getAttribute('data-index'), 10);
       const data = PortfolioStorage.getData();
-      if (!data.sectionVisibility) data.sectionVisibility = {};
-      data.sectionVisibility[section] = e.target.checked;
-      await PortfolioStorage.saveData(data);
+      if (idx < data.sections.length - 1) {
+        const temp = data.sections[idx];
+        data.sections[idx] = data.sections[idx + 1];
+        data.sections[idx + 1] = temp;
+        await PortfolioStorage.saveData(data);
+        renderSectionsManager(data.sections);
+      }
+    });
+  });
+
+  // 3. Visibility Toggle
+  container.querySelectorAll('.sec-vis-toggle').forEach(chk => {
+    chk.addEventListener('change', async (e) => {
+      const card = e.target.closest('.section-item-card');
+      const secId = card.getAttribute('data-sec-id');
+      const data = PortfolioStorage.getData();
+      const sec = data.sections.find(s => s.id === secId);
+      if (sec) {
+        sec.visible = e.target.checked;
+        await PortfolioStorage.saveData(data);
+      }
+    });
+  });
+
+  // 4. Toggle Edit Form
+  container.querySelectorAll('.btn-edit-sec').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.target.closest('.section-item-card');
+      const editBox = card.querySelector('.section-inline-edit');
+      const isVisible = editBox.style.display !== 'none';
+      editBox.style.display = isVisible ? 'none' : 'block';
+      btn.textContent = isVisible ? 'Edit' : 'Close';
+    });
+  });
+
+  // 5. Cancel Edit Form
+  container.querySelectorAll('.btn-cancel-edit-sec').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const card = e.target.closest('.section-item-card');
+      card.querySelector('.section-inline-edit').style.display = 'none';
+      const editBtn = card.querySelector('.btn-edit-sec');
+      if (editBtn) editBtn.textContent = 'Edit';
+    });
+  });
+
+  // 6. Save Edit Form
+  container.querySelectorAll('.btn-save-edit-sec').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const card = e.target.closest('.section-item-card');
+      const secId = card.getAttribute('data-sec-id');
+      const data = PortfolioStorage.getData();
+      const sec = data.sections.find(s => s.id === secId);
+      if (sec) {
+        const titleInput = card.querySelector('.edit-sec-title');
+        const introInput = card.querySelector('.edit-sec-intro');
+        const contentInput = card.querySelector('.edit-sec-content');
+
+        if (titleInput && titleInput.value.trim()) {
+          sec.label = titleInput.value.trim();
+        }
+        if (introInput) {
+          sec.intro = introInput.value.trim();
+        }
+        if (contentInput) {
+          sec.content = contentInput.value;
+        }
+
+        await showSaveStatus(btn, PortfolioStorage.saveData(data));
+        renderSectionsManager(data.sections);
+      }
+    });
+  });
+
+  // 7. Delete Custom Section
+  container.querySelectorAll('.btn-del-sec').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const card = e.target.closest('.section-item-card');
+      const secId = card.getAttribute('data-sec-id');
+      const data = PortfolioStorage.getData();
+      const sec = data.sections.find(s => s.id === secId);
+      if (!sec) return;
+
+      if (confirm(`Delete the section "${sec.label}"? This action cannot be undone.`)) {
+        data.sections = data.sections.filter(s => s.id !== secId);
+        await PortfolioStorage.saveData(data);
+        renderSectionsManager(data.sections);
+      }
     });
   });
 }
