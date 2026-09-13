@@ -85,7 +85,8 @@
 
             <p style="margin-top: 20px;"><strong>Links:</strong><br>
             <a id="sidebar-github" href="https://github.com/amit1527" target="_blank" rel="noopener">GitHub Profile ↗</a><br>
-            <a id="sidebar-linkedin" href="https://linkedin.com/in/amit1527" target="_blank" rel="noopener">LinkedIn Profile ↗</a>
+            <a id="sidebar-linkedin" href="https://linkedin.com/in/amit1527" target="_blank" rel="noopener">LinkedIn Profile ↗</a><br>
+            <a id="sidebar-cv-link" href="#" target="_blank" rel="noopener" style="display:none;">Download CV ↗</a>
             </p>
           </div>
         </div>
@@ -117,6 +118,7 @@
         <button class="admin-tab-btn" data-tab="experience">Experience</button>
         <button class="admin-tab-btn" data-tab="education">Education</button>
         <button class="admin-tab-btn" data-tab="awards">Honors &amp; Awards</button>
+        <button class="admin-tab-btn" data-tab="cv">CV / Résumé</button>
         <button class="admin-tab-btn" data-tab="data">Data Backup &amp; Reset</button>
       </div>
 
@@ -273,6 +275,35 @@
               <textarea id="adm-awards-textarea" class="form-control" style="min-height:120px;"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Save Honors</button>
+          </form>
+        </div>
+
+        <!-- CV TAB -->
+        <div id="tab-cv" class="admin-tab-panel">
+          <h3>CV / Résumé</h3>
+          <p style="font-size:13px; color:#888; margin-bottom:18px;">Provide a link to your CV (Google Drive, Dropbox, personal site, etc.). This will show a download/view button on the public site.</p>
+          <form id="admin-cv-form">
+            <div class="form-group">
+              <label>CV File URL</label>
+              <input type="url" id="adm-cv-url" class="form-control" placeholder="https://drive.google.com/file/d/... or /cv.pdf">
+            </div>
+            <div class="form-group">
+              <label>Button Label</label>
+              <input type="text" id="adm-cv-label" class="form-control" placeholder="Download CV" value="Download CV">
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="adm-cv-visible" style="width:16px; height:16px;">
+                Show CV section on public site
+              </label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+              <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="adm-cv-sidebar" style="width:16px; height:16px;">
+                Also show CV link in sidebar
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Save CV Settings</button>
           </form>
         </div>
 

@@ -58,6 +58,15 @@ function loadAdminData() {
   renderAdminExperience(experienceList);
   renderAdminEducation(educationList);
   renderAdminAwards(awardsList);
+
+  // CV Form
+  const cv = data.cvData || {};
+  setVal('adm-cv-url', cv.url || '');
+  setVal('adm-cv-label', cv.label || 'Download CV');
+  const cvVisEl = document.getElementById('adm-cv-visible');
+  if (cvVisEl) cvVisEl.checked = !!cv.visible;
+  const cvSidebarEl = document.getElementById('adm-cv-sidebar');
+  if (cvSidebarEl) cvSidebarEl.checked = !!cv.showInSidebar;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -211,6 +220,31 @@ function setupFormHandlers() {
       const text = getVal('adm-awards-textarea');
       data.awardsList = text.split('\n').map(l => l.trim()).filter(Boolean);
       const submitBtn = awardsForm.querySelector('button[type="submit"]');
+      showSaveStatus(submitBtn, PortfolioStorage.saveData(data));
+    });
+  }
+
+  // 7. CV Form Save
+  const cvForm = document.getElementById('admin-cv-form');
+  if (cvForm) {
+    cvForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = PortfolioStorage.getData();
+      const cvVisEl = document.getElementById('adm-cv-visible');
+      const cvSidebarEl = document.getElementById('adm-cv-sidebar');
+      const isVisible = cvVisEl ? cvVisEl.checked : false;
+      data.cvData = {
+        url:          getVal('adm-cv-url'),
+        label:        getVal('adm-cv-label') || 'Download CV',
+        visible:      isVisible,
+        showInSidebar: cvSidebarEl ? cvSidebarEl.checked : false
+      };
+      // Keep the cv built-in section visibility in sync
+      if (data.sections) {
+        const cvSec = data.sections.find(s => s.id === 'cv');
+        if (cvSec) cvSec.visible = isVisible;
+      }
+      const submitBtn = cvForm.querySelector('button[type="submit"]');
       showSaveStatus(submitBtn, PortfolioStorage.saveData(data));
     });
   }

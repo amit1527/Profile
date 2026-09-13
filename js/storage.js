@@ -64,6 +64,14 @@ export const DEFAULT_SECTIONS = [
     builtin: true,
     visible: false,
     intro: ''
+  },
+  {
+    id: 'cv',
+    label: 'Curriculum Vitae',
+    type: 'cv',
+    builtin: true,
+    visible: false,
+    intro: ''
   }
 ];
 
@@ -151,7 +159,14 @@ export const DEFAULT_DATA = {
     "Ranked in the **top 1%** among 450,000+ candidates in the National Defence Academy (NDA) written examination.",
     "**99th+ percentile in Mathematics**, CUET 2025.",
     "Two-time winner, school-level Mental Maths Competition."
-  ]
+  ],
+
+  cvData: {
+    url: '',
+    label: 'Download CV',
+    visible: false,
+    showInSidebar: false
+  }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

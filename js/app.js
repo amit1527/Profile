@@ -69,6 +69,19 @@ function renderPublicSite(data) {
   const footerDate = document.getElementById('footer-updated');
   if (footerDate) footerDate.textContent = `Last updated ${profile.lastUpdated || 'August 2026'}`;
 
+  // 6. CV sidebar link
+  const cv = data.cvData || {};
+  const sidebarCvLink = document.getElementById('sidebar-cv-link');
+  if (sidebarCvLink) {
+    if (cv.showInSidebar && cv.url) {
+      sidebarCvLink.href = cv.url;
+      sidebarCvLink.textContent = `${cv.label || 'Download CV'} ↗`;
+      sidebarCvLink.style.display = 'inline';
+    } else {
+      sidebarCvLink.style.display = 'none';
+    }
+  }
+
   // Trigger MathJax LaTeX rendering
   triggerMathJax();
 }
@@ -168,6 +181,22 @@ function renderSections(data) {
           </ul>
         </div>
       `;
+    } else if (sec.type === 'cv') {
+      const cvData = data.cvData || {};
+      if (cvData.url) {
+        html += `
+          <div id="${sec.id}" class="portfolio-section">
+            ${titleHtml}
+            ${introHtml}
+            <div class="cv-download-block">
+              <a href="${escapeHtml(cvData.url)}" class="cv-download-btn" target="_blank" rel="noopener">
+                <span class="cv-icon">&#8595;</span> ${escapeHtml(cvData.label || 'Download CV')}
+              </a>
+              <p class="cv-note">Opens in a new tab. Last updated ${escapeHtml(data.profile.lastUpdated || 'August 2026')}.</p>
+            </div>
+          </div>
+        `;
+      }
     }
   }
 
